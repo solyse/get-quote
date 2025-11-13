@@ -1,16 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MapPin, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiService, PlacePrediction } from '../services/api';
+import { apiService, PlacePrediction, AddressComponent } from '../services/api';
 import { BcClubIcon } from './BcClubIcon';
 
 export interface Location {
   id: string;
   name: string;
-  address: string;
+  street1?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
   type: 'club' | 'resort' | 'airport' | 'city' | 'establishment' | 'sports_club' | 'other';
   placeId?: string;
   source?: string;
+  // Keep address for display purposes (computed from separate fields)
+  address?: string;
 }
 
 interface AutocompleteInputProps {
@@ -36,14 +42,31 @@ const mapPlaceToLocation = (placePrediction: PlacePrediction): Location => {
   } else if (placePrediction.types.includes('sports_club') || placePrediction.types.includes('gym')) {
     locationType = 'sports_club';
   }
+  // Extract address fields from API response
+  const address = placePrediction.address;
+  const street1 = address?.address1 || '';
+  const city = address?.city || '';
+  const state = address?.provinceCode || '';
+  const postal_code = address?.zip || '';
+  const country = address?.countryCodeV2 || '';
+
+  // Create formatted address string for display (fallback to secondaryText if address not available)
+  const formattedAddress = address 
+    ? [street1, city, state, postal_code, country].filter(Boolean).join(', ')
+    : secondaryText || placePrediction.text.text;
 
   return {
     id: placePrediction.placeId,
     name: mainText,
-    address: secondaryText || placePrediction.text.text,
+    street1,
+    city,
+    state,
+    postal_code,
+    country,
     type: locationType,
     placeId: placePrediction.placeId,
     source: placePrediction.source,
+    address: formattedAddress, // Keep for display purposes
   };
 };
 
@@ -158,7 +181,63 @@ export function AutocompleteInput({
     }
   };
 
-  const handleSelect = (location: Location) => {
+  const handleSelect = async (location: Location) => {
+    // If source is not "bc_club", fetch place details to get complete address information
+    if (!location.source || location.source !== 'bc_club') {
+      if (location.placeId) {
+        try {
+          setIsLoading(true);
+          const detailsResponse = await apiService.getPlaceDetails(location.placeId);
+          
+          if (detailsResponse.data && detailsResponse.data.addressComponents) {
+            // Extract address fields from addressComponents
+            const components = detailsResponse.data.addressComponents;
+            
+            // Helper to find component by type
+            const findComponent = (type: string): AddressComponent | undefined => {
+              return components.find(comp => comp.types.includes(type));
+            };
+            
+            // Extract address fields
+            const streetNumber = findComponent('street_number');
+            const route = findComponent('route');
+            const street1 = [streetNumber?.shortText, route?.shortText]
+              .filter(Boolean)
+              .join(' ')
+              .trim();
+            
+            const locality = findComponent('locality');
+            const city = locality?.longText || '';
+            
+            const adminLevel1 = findComponent('administrative_area_level_1');
+            const state = adminLevel1?.shortText || '';
+            
+            const postalCode = findComponent('postal_code');
+            const postal_code = postalCode?.shortText || '';
+            
+            const country = findComponent('country');
+            const countryCode = country?.shortText || '';
+            
+            // Update location with detailed address information
+            location = {
+              ...location,
+              street1: street1 || location.street1,
+              city: city || location.city,
+              state: state || location.state,
+              postal_code: postal_code || location.postal_code,
+              country: countryCode || location.country,
+              address: detailsResponse.data.formattedAddress || location.address,
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching place details:', error);
+          // Continue with existing location data if API call fails
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    }
+    
     onSelect(location);
     onChange(location.name);
     setIsOpen(false);

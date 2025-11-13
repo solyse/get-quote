@@ -24,13 +24,13 @@ export function HeroSection({ backgroundImage, onGetQuote }: HeroSectionProps) {
         from: selectedFrom,
         to: selectedTo,
       });
-      
+
       // Call the callback
       onGetQuote(selectedFrom.name, selectedTo.name);
-      
+
       // Redirect to club-flow page
-      const redirectUrl = `${envConfig.websiteUrl}/pages/club-flow`;
-      window.location.href = redirectUrl;
+      const redirectUrl = `${envConfig.websiteUrl}/pages/booking-form`;
+      // window.location.href = redirectUrl;
     }
   };
 
@@ -39,7 +39,7 @@ export function HeroSection({ backgroundImage, onGetQuote }: HeroSectionProps) {
   return (
     <div className="relative h-[200px] w-full">
       {/* Background Image */}
-      {/* <div 
+      {/* <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       >
@@ -71,7 +71,7 @@ export function HeroSection({ backgroundImage, onGetQuote }: HeroSectionProps) {
             />
 
             {/* Divider Arrow */}
-            <div className="hidden md:flex items-center justify-center px-2">
+            <div className="md:flex items-center justify-center px-2">
               <ArrowRight className="w-5 h-5 text-white/60" />
             </div>
 
@@ -92,11 +92,10 @@ export function HeroSection({ backgroundImage, onGetQuote }: HeroSectionProps) {
             <button
               type="submit"
               disabled={!isFormValid}
-              className={`px-10 h-14 rounded-full transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap ${
-                isFormValid
+              className={`px-10 h-14 rounded-full transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap ${isFormValid
                   ? 'bg-[#D4AF37] text-[#111111] hover:bg-[#c29d2f] cursor-pointer shadow-[0_4px_12px_rgba(212,175,55,0.3)]'
                   : 'bg-white/20 text-white/50 cursor-not-allowed'
-              }`}
+                }`}
             >
               <span>Get Quote</span>
               <ArrowRight className="w-4 h-4" />

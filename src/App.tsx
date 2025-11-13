@@ -6,7 +6,7 @@ import { ClubOnboardingOverlay } from './components/ClubOnboardingOverlay';
 import { Toaster } from './components/ui/sonner';
 // TODO: Replace with actual hero image path
 // Placeholder - you'll need to add the actual image to src/assets/images or public/images
-const heroImage = '/images/hero-image.png'; // or import from src/assets/images/hero-image.png
+const heroImage = 'https://cdn.shopify.com/s/files/1/0613/9694/2980/files/booking-banner.png'; // or import from src/assets/images/hero-image.png
 
 type ViewMode = 'home' | 'clubAccess' | 'booking';
 
@@ -18,8 +18,8 @@ export default function App() {
 
   const handleGetQuote = (from: string, to: string) => {
     setQuoteData({ from, to });
-    setEntryMode('QuickQuote');
-    setViewMode('clubAccess');
+    // setEntryMode('QuickQuote');
+    // setViewMode('clubAccess');
   };
 
   const handleStartJourney = () => {
@@ -67,7 +67,7 @@ export default function App() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#000000]">
+      <div>
         {/* Hero Section */}
         <HeroSection 
           backgroundImage={heroImage}

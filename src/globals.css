@@ -151,6 +151,12 @@
   }
   #bcQuote input[type=text]{
     color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+    background-color: color-mix(in oklab, var(--color-white) 20%, transparent);
+    border:none;
+  }
+  #bcQuote input[type=text]:focus, #bcQuote input[type=text]:active{
+    box-shadow: none!important;
+    outline: none!important;
   }
 }
 
