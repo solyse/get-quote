@@ -6,11 +6,10 @@ import { storage } from '../services/storage';
 import { envConfig } from '../config/env';
 
 interface HeroSectionProps {
-  backgroundImage: string;
   onGetQuote: (from: string, to: string) => void;
 }
 
-export function HeroSection({ backgroundImage, onGetQuote }: HeroSectionProps) {
+export function HeroSection({  onGetQuote }: HeroSectionProps) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [selectedFrom, setSelectedFrom] = useState<Location | null>(null);
@@ -25,12 +24,10 @@ export function HeroSection({ backgroundImage, onGetQuote }: HeroSectionProps) {
         to: selectedTo,
       });
 
-      // Call the callback
-      onGetQuote(selectedFrom.name, selectedTo.name);
 
       // Redirect to club-flow page
       const redirectUrl = `${envConfig.websiteUrl}/pages/booking-form`;
-      // window.location.href = redirectUrl;
+      window.location.href = redirectUrl;
     }
   };
 
@@ -38,13 +35,6 @@ export function HeroSection({ backgroundImage, onGetQuote }: HeroSectionProps) {
 
   return (
     <div className="relative h-[200px] w-full">
-      {/* Background Image */}
-      {/* <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
-      >
-        <div className="absolute inset-0 bg-black/20" />
-      </div> */}
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
