@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { MapPin, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService, PlacePrediction, AddressComponent } from '../services/api';
-import { BcClubIcon } from './BcClubIcon';
+import { BcClubIcon } from './ui/BcClubIcon';
 
 export interface Location {
   id: string;
@@ -322,8 +322,13 @@ export function AutocompleteInput({
               >
                 <div className="mt-1 flex-shrink-0">
                   {location.source === 'bc_club' ? (
-                    <BcClubIcon size={16} className="w-4 h-4" />
-                  ) : (
+                    <BcClubIcon type="BcClub" size={16} color="#D4AF37" className="
+                    w-4 h-4 text-[#D4AF37] fill-[#D4AF37]" />
+                  ) : 
+                  location.type === 'club' ? (
+                    <BcClubIcon type="GolfClub" size={16} color="#D4AF37" className="w-4 h-4 text-[#D4AF37] fill-[#D4AF37]" />
+                  ) :
+                  (
                     <MapPin className="w-4 h-4 text-[#D4AF37]" />
                   )}
                 </div>

@@ -2,7 +2,7 @@
 
 import { Location } from '../components/AutocompleteInput';
 
-const QUOTE_STORAGE_KEY = "_bc_quote";
+const QUOTE_STORAGE_KEY_BASE = "_bc_quote";
 
 export interface QuoteData {
   from: Location;
@@ -20,6 +20,20 @@ export class StorageService {
       StorageService.instance = new StorageService();
     }
     return StorageService.instance;
+  }
+
+  /**
+   * Get the storage key based on environment
+   * @returns storage key with "_dev" suffix when not in production
+   */
+  private getStorageKey(): string {
+    // Use REACT_APP_ENV to determine if we're in production
+    // NODE_ENV is always "development" when running dev server
+    const envFromProcess = process.env.REACT_APP_ENV?.toLowerCase().trim();
+    const isProduction = envFromProcess === 'production';
+    
+    // Add "_dev" suffix for staging/development, use base key for production
+    return isProduction ? QUOTE_STORAGE_KEY_BASE : `${QUOTE_STORAGE_KEY_BASE}_dev`;
   }
 
   /**
@@ -50,7 +64,7 @@ export class StorageService {
 
     try {
       const serializedData = JSON.stringify(data);
-      localStorage.setItem(QUOTE_STORAGE_KEY, serializedData);
+      localStorage.setItem(this.getStorageKey(), serializedData);
       return true;
     } catch (error) {
       console.error(`Error setting quote in localStorage:`, error);
@@ -69,7 +83,7 @@ export class StorageService {
     }
 
     try {
-      const item = localStorage.getItem(QUOTE_STORAGE_KEY);
+      const item = localStorage.getItem(this.getStorageKey());
       
       if (item === null) {
         return null;
@@ -93,7 +107,7 @@ export class StorageService {
     }
 
     try {
-      localStorage.removeItem(QUOTE_STORAGE_KEY);
+      localStorage.removeItem(this.getStorageKey());
       return true;
     } catch (error) {
       console.error(`Error removing quote from localStorage:`, error);
@@ -111,7 +125,7 @@ export class StorageService {
     }
 
     try {
-      return localStorage.getItem(QUOTE_STORAGE_KEY) !== null;
+      return localStorage.getItem(this.getStorageKey()) !== null;
     } catch (error) {
       console.error(`Error checking quote in localStorage:`, error);
       return false;

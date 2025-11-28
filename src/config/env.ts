@@ -36,24 +36,43 @@ const productionConfig: EnvConfig = {
  * Environment variables override config values if provided
  */
 export const getEnvConfig = (): EnvConfig => {
-  const envFromProcess = process.env.REACT_APP_ENV as 'staging' | 'production';
+  const envFromProcess = process.env.REACT_APP_ENV;
+  console.log('process.env.NODE_ENV', envFromProcess);
+  // Debug logging (remove in production if needed)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[EnvConfig] REACT_APP_ENV:', envFromProcess);
+    console.log('[EnvConfig] All REACT_APP_ vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
+  }
+  
+  // Normalize the environment value (case-insensitive, trim whitespace)
+  const normalizedEnv = envFromProcess?.toLowerCase().trim();
   
   // Determine which base config to use
   let baseConfig: EnvConfig;
-  if (envFromProcess === 'production') {
+  if (normalizedEnv === 'production') {
     baseConfig = productionConfig;
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[EnvConfig] Using PRODUCTION configuration');
+    }
   } else {
     baseConfig = defaultConfig;
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[EnvConfig] Using STAGING configuration (default)');
+    }
   }
 
   // Override with environment variables if provided
   const config: EnvConfig = {
-    env: (process.env.REACT_APP_ENV as EnvConfig['env']) || baseConfig.env,
+    env: (normalizedEnv === 'production' ? 'production' : 'staging') as EnvConfig['env'],
     apiBaseUrl: process.env.REACT_APP_API_BASE_URL || baseConfig.apiBaseUrl,
     locUrl: process.env.REACT_APP_LOC_URL || baseConfig.locUrl,
     websiteUrl: process.env.REACT_APP_WEBSITE_URL || baseConfig.websiteUrl,
     bagcaddieCode: process.env.REACT_APP_BAGCADDIE_CODE || baseConfig.bagcaddieCode
   };
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[EnvConfig] Final config:', config);
+  }
 
   return config;
 };
