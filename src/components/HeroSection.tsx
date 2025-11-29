@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AutocompleteInput, Location } from './AutocompleteInput';
 import { storage } from '../services/storage';
 import { envConfig } from '../config/env';
+import { InternationalAddressModal } from './InternationalAddressModal';
 
 interface HeroSectionProps {
   onGetQuote: (from: string, to: string) => void;
@@ -14,6 +15,7 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
   const [to, setTo] = useState('');
   const [selectedFrom, setSelectedFrom] = useState<Location | null>(null);
   const [selectedTo, setSelectedTo] = useState<Location | null>(null);
+  const [isInternationalModalOpen, setIsInternationalModalOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +33,27 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
     }
   };
 
-  const isFormValid = selectedFrom !== null && selectedTo !== null;
+  // Helper function to check if a location is non-US
+  const isNonUSLocation = (location: Location | null): boolean => {
+    if (!location) return false;
+    const country = location.country?.toUpperCase().trim();
+    return country !== undefined && country !== '' && country !== 'US';
+  };
+
+  // Check if either location is non-US
+  const hasNonUSLocation = isNonUSLocation(selectedFrom) || isNonUSLocation(selectedTo);
+
+  // Automatically close modal if both locations become US
+  useEffect(() => {
+    if (isInternationalModalOpen && !hasNonUSLocation) {
+      setIsInternationalModalOpen(false);
+    }
+  }, [isInternationalModalOpen, hasNonUSLocation]);
+
+  const isFormValid = selectedFrom !== null && selectedTo !== null && !hasNonUSLocation;
 
   return (
-    <div className="relative h-[200px] w-full">
+    <div className="relative h-auto md:h-[200px] w-full my-8 md:my-0">
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
@@ -54,6 +73,10 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
               onSelect={(location) => {
                 setSelectedFrom(location);
                 setFrom(location.name);
+                // Check if location is non-US and open modal
+                if (isNonUSLocation(location)) {
+                  setIsInternationalModalOpen(true);
+                }
               }}
               placeholder="Pickup location or club"
               selectedLocation={selectedFrom}
@@ -72,6 +95,10 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
               onSelect={(location) => {
                 setSelectedTo(location);
                 setTo(location.name);
+                // Check if location is non-US and open modal
+                if (isNonUSLocation(location)) {
+                  setIsInternationalModalOpen(true);
+                }
               }}
               placeholder="Destination or resort"
               selectedLocation={selectedTo}
@@ -93,6 +120,12 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
           </div>
         </motion.form>
       </div>
+
+      {/* International Address Modal */}
+      <InternationalAddressModal
+        isOpen={isInternationalModalOpen}
+        onClose={() => setIsInternationalModalOpen(false)}
+      />
     </div>
   );
 }
