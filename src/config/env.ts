@@ -37,12 +37,7 @@ const productionConfig: EnvConfig = {
  */
 export const getEnvConfig = (): EnvConfig => {
   const envFromProcess = process.env.REACT_APP_ENV;
-  console.log('process.env.NODE_ENV', envFromProcess);
   // Debug logging (remove in production if needed)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[EnvConfig] REACT_APP_ENV:', envFromProcess);
-    console.log('[EnvConfig] All REACT_APP_ vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
-  }
   
   // Normalize the environment value (case-insensitive, trim whitespace)
   const normalizedEnv = envFromProcess?.toLowerCase().trim();

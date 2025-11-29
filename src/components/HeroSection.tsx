@@ -16,6 +16,7 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
   const [selectedFrom, setSelectedFrom] = useState<Location | null>(null);
   const [selectedTo, setSelectedTo] = useState<Location | null>(null);
   const [isInternationalModalOpen, setIsInternationalModalOpen] = useState(false);
+  const [fieldTriggeredModal, setFieldTriggeredModal] = useState<'from' | 'to' | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,18 +38,21 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
   const isNonUSLocation = (location: Location | null): boolean => {
     if (!location) return false;
     const country = location.country?.toUpperCase().trim();
-    return country !== undefined && country !== '' && country !== 'US';
+    return country !== undefined && country !== '' && country !== 'US' && country !== 'USA' && country !== 'UNITED STATES';
   };
 
   // Check if either location is non-US
   const hasNonUSLocation = isNonUSLocation(selectedFrom) || isNonUSLocation(selectedTo);
 
-  // Automatically close modal if both locations become US
+  // Automatically close modal if both locations become valid US locations
+  // Only closes when both fields have valid US locations (not when fields are reset)
   useEffect(() => {
-    if (isInternationalModalOpen && !hasNonUSLocation) {
+    // Only auto-close if modal is open AND both locations are set AND both are US
+    if (isInternationalModalOpen && selectedFrom && selectedTo && !isNonUSLocation(selectedFrom) && !isNonUSLocation(selectedTo)) {
+      setFieldTriggeredModal(null);
       setIsInternationalModalOpen(false);
     }
-  }, [isInternationalModalOpen, hasNonUSLocation]);
+  }, [isInternationalModalOpen, selectedFrom, selectedTo]);
 
   const isFormValid = selectedFrom !== null && selectedTo !== null && !hasNonUSLocation;
 
@@ -71,11 +75,18 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
               value={from}
               onChange={setFrom}
               onSelect={(location) => {
-                setSelectedFrom(location);
-                setFrom(location.name);
-                // Check if location is non-US and open modal
+                // Check if location is non-US
                 if (isNonUSLocation(location)) {
+                  // Reset the field and open modal
+                  setSelectedFrom(null);
+                  setFrom('');
+                  setFieldTriggeredModal('from');
                   setIsInternationalModalOpen(true);
+                } else {
+                  // Set the location if it's US
+                  setSelectedFrom(location);
+                  setFrom(location.name);
+                  setFieldTriggeredModal(null);
                 }
               }}
               placeholder="Pickup location or club"
@@ -93,11 +104,18 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
               value={to}
               onChange={setTo}
               onSelect={(location) => {
-                setSelectedTo(location);
-                setTo(location.name);
-                // Check if location is non-US and open modal
+                // Check if location is non-US
                 if (isNonUSLocation(location)) {
+                  // Reset the field and open modal
+                  setSelectedTo(null);
+                  setTo('');
+                  setFieldTriggeredModal('to');
                   setIsInternationalModalOpen(true);
+                } else {
+                  // Set the location if it's US
+                  setSelectedTo(location);
+                  setTo(location.name);
+                  setFieldTriggeredModal(null);
                 }
               }}
               placeholder="Destination or resort"
@@ -124,7 +142,18 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
       {/* International Address Modal */}
       <InternationalAddressModal
         isOpen={isInternationalModalOpen}
-        onClose={() => setIsInternationalModalOpen(false)}
+        onClose={() => {
+          // Reset the field that triggered the modal
+          if (fieldTriggeredModal === 'from') {
+            setSelectedFrom(null);
+            setFrom('');
+          } else if (fieldTriggeredModal === 'to') {
+            setSelectedTo(null);
+            setTo('');
+          }
+          setFieldTriggeredModal(null);
+          setIsInternationalModalOpen(false);
+        }}
       />
     </div>
   );
