@@ -162,7 +162,7 @@ export function InternationalAddressModal({
               </div>
 
               {/* Primary CTA */}
-              <button
+              {/* <button
                onClick={handleContinue}
                 // onClick={handleNotifyMe}
                 // disabled={!email || !email.includes('@') || isSubmitting}
@@ -190,7 +190,7 @@ export function InternationalAddressModal({
                 // }}
               >
                 {isSubmitting ? 'Submitting...' : 'Notify Me When Available'}
-              </button>
+              </button> */}
 
               {/* Secondary CTA */}
               <button

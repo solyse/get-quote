@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AutocompleteInput, Location } from './AutocompleteInput';
@@ -17,6 +17,8 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
   const [selectedTo, setSelectedTo] = useState<Location | null>(null);
   const [isInternationalModalOpen, setIsInternationalModalOpen] = useState(false);
   const [fieldTriggeredModal, setFieldTriggeredModal] = useState<'from' | 'to' | null>(null);
+  const fromInputRef = useRef<HTMLInputElement>(null);
+  const toInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +29,8 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
         to: selectedTo,
       });
 
-
       // Redirect to club-flow page
-      const redirectUrl = `${envConfig.websiteUrl}/pages/booking-form`;
+      const redirectUrl = `${envConfig.websiteUrl}/pages/booking-form?mode=quote`;
       window.location.href = redirectUrl;
     }
   };
@@ -54,6 +55,26 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
     }
   }, [isInternationalModalOpen, selectedFrom, selectedTo]);
 
+  // Auto-focus "To" field when "From" field is completed
+  useEffect(() => {
+    if (selectedFrom && !isNonUSLocation(selectedFrom) && !selectedTo) {
+      // Small delay to ensure the input is rendered
+      setTimeout(() => {
+        toInputRef.current?.focus();
+      }, 100);
+    }
+  }, [selectedFrom, selectedTo]);
+
+  // Auto-focus "From" field when "To" field is completed
+  useEffect(() => {
+    if (selectedTo && !isNonUSLocation(selectedTo) && !selectedFrom) {
+      // Small delay to ensure the input is rendered
+      setTimeout(() => {
+        fromInputRef.current?.focus();
+      }, 100);
+    }
+  }, [selectedTo, selectedFrom]);
+
   const isFormValid = selectedFrom !== null && selectedTo !== null && !hasNonUSLocation;
 
   return (
@@ -72,6 +93,7 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
           <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-2 flex flex-col md:flex-row items-stretch gap-2">
             {/* From Input */}
             <AutocompleteInput
+              ref={fromInputRef}
               value={from}
               onChange={setFrom}
               onSelect={(location) => {
@@ -101,6 +123,7 @@ export function HeroSection({  onGetQuote }: HeroSectionProps) {
 
             {/* To Input */}
             <AutocompleteInput
+              ref={toInputRef}
               value={to}
               onChange={setTo}
               onSelect={(location) => {

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
 import { MapPin, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService, PlacePrediction, AddressComponent } from '../services/api';
@@ -70,21 +70,31 @@ const mapPlaceToLocation = (placePrediction: PlacePrediction): Location => {
   };
 };
 
-export function AutocompleteInput({
+export const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(({
   value,
   onChange,
   onSelect,
   placeholder,
   selectedLocation,
   excludeLocationId,
-}: AutocompleteInputProps) {
+}, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Merge refs: support both internal ref and forwarded ref
+  const inputRef = useCallback((node: HTMLInputElement | null) => {
+    internalInputRef.current = node;
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+    }
+  }, [ref]);
 
   // Debounced API call
   const fetchLocations = useCallback(async (query: string) => {
@@ -138,7 +148,7 @@ export function AutocompleteInput({
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
-        !inputRef.current?.contains(event.target as Node)
+        !internalInputRef.current?.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -283,7 +293,7 @@ export function AutocompleteInput({
       />
 
       {/* Selected indicator */}
-      {selectedLocation && (
+      {selectedLocation && value.trim().length > 0 && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2">
           <Check className="w-5 h-5 text-white" />
         </div>
@@ -354,4 +364,6 @@ export function AutocompleteInput({
       </AnimatePresence>
     </div>
   );
-}
+});
+
+AutocompleteInput.displayName = 'AutocompleteInput';
